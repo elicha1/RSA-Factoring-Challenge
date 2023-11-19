@@ -1,33 +1,48 @@
-#!/usr/bin/env python3
+#!/usr/bin/env bash
 
-import sys
+check_factor()
+{
+	if [ $# -ne 3 ];
+        then
+                args=("$@")
+                count=0
+                num2=1
+                for a in ${args[*]};
+                do
+                        if [ $count -gt 1 ];
+                        then
+                                num2=$(echo $a*$num2 | bc)
+                        fi
+                        count=$((count + 1))
+                done
+        else
+                num2=$3
+        fi
 
-def factorize(num):
-    factors = []
-    divisor = 2
+        num1=$2
+        num=$(echo "$1" | tr ':' '=')
 
-    while divisor <= num:
-        if num % divisor == 0:
-            factors.append(divisor)
-            num //= divisor
-        else:
-            divisor += 1
+        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
+	        if ((result == 1)); then
+		        numcp=$num1
+		        num1=$num2
+		        num2=$numcp
+                fi
 
-    return factors
+        echo "$num$num1*$num2"
+}
 
-def main(filename):
-    with open(filename, 'r') as file:
-        numbers = file.read().splitlines()
+if [ $# -ne 1 ]
+then
+        echo 'Usage: factors <file>'
+        exit 1
+else
 
-    for number in numbers:
-        num = int(number)
-        factors = factorize(num)
-        print(f"{num}={'*'.join(map(str, factors))}")
+        while read i
+        do
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: factors <file>")
-        sys.exit(1)
+                result=$(factor "$i")
+                check_factor $result
 
-    input_file = sys.argv[1]
-    main(input_file)
+        done < "$1"
+fi
