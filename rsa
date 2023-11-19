@@ -1,48 +1,40 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-check_factor()
-{
-	if [ $# -ne 3 ];
-        then
-                args=("$@")
-                count=0
-                num2=1
-                for a in ${args[*]};
-                do
-                        if [ $count -gt 1 ];
-                        then
-                                num2=$(echo $a*$num2 | bc)
-                        fi
-                        count=$((count + 1))
-                done
-        else
-                num2=$3
-        fi
+import sys
 
-        num1=$2
-        num=$(echo "$1" | tr ':' '=')
 
-        result=$(echo "if($num2 > $num1) 1 else 0" | bc)
-	        if ((result == 1)); then
-		        numcp=$num1
-		        num1=$num2
-		        num2=$numcp
-                fi
+def check_if_prime(n):
+    """
+    Test whether n is a prime number.
+    """
+    if n <= 1:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
 
-        echo "$num$num1*$num2"
-}
 
-if [ $# -ne 1 ]
-then
-        echo 'Usage: rsa <file>'
-        exit 1
-else
+def factorize_the_rsa(n):
+    """
+    Factorize an RSA number n into two prime numbers p and q.
+    """
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            if check_if_prime(i) and check_if_prime(n//i):
+                return f"{n}={i}*{n//i}"
+    return f"{n} is prime"
 
-        while read i
-        do
 
-                result=$(factor "$i")
-                check_factor $result
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} <file>")
+        sys.exit(1)
 
-        done < "$1"
-fi
+    try:
+        with open(sys.argv[1], "r") as f:
+            n = int(f.readline().strip())
+            print(factorize_the_rsa(n))
+    except OSError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
